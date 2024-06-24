@@ -45,7 +45,7 @@ const Banner = () => {
           {movie.title || movie.name || movie.original_name}
         </h1>
         <div className='banner_buttons'>
-          {console.log("ff :" +  movie?.videos?.results[0]?.key)}
+          {/* {console.log("ff :" +  movie?.videos?.results[0]?.key)} */}
           {movie?.videos?.results[0]?.key && 
             <button
               className='banner_button_play'
