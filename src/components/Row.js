@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react'
 import axios from '../api/axios'
 
-const Row = (title, id, fetchUrl) => {
+const Row = ({title, id, fetchUrl}) => {
 
   console.log("id :: " + id)
   console.log("title :: " + title)
