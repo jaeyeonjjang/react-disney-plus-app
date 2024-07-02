@@ -1,3 +1,4 @@
+import { getAuth, GoogleAuthProvider , onAuthStateChanged, signInWithPopup} from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -7,6 +8,21 @@ const Nav = () => {
   const {pathname} = useLocation();
   const [searchValue, setSearchValue] = useState("");
   const navigate = useNavigate();
+  const auth = getAuth();
+  const provider = new GoogleAuthProvider();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      console.log("user :: " + user);
+      if(user) {
+        if(pathname === "/"){
+          navigate("/main");
+        }
+      }else {
+        navigate("/login");
+      }
+    })
+  },[])
 
 
 
@@ -36,6 +52,14 @@ const Nav = () => {
     // SearchTerm 이 바뀔 때마다 새로 영화 데이터를 가져옴
   }
 
+  const handleAuth=() => {
+    signInWithPopup(auth,provider)
+    .then(result => {})
+    .catch((error) => {
+      alert(error.message);
+    })
+  }
+
   return (
     <NavWrapper $show={show ? "true" : "false"}> {/* 문자열로 변환 */}
       <Logo>
@@ -47,7 +71,7 @@ const Nav = () => {
       </Logo>
 
       {pathname === "/"? (
-        <Login>Login</Login>) : 
+        <Login onClick={handleAuth}>Login</Login>) : 
         <Input 
         value={searchValue}
         onChange={ handleChange}
