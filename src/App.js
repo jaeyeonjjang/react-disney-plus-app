@@ -19,7 +19,7 @@ function App() {
       <div className='app'>
         <Routes>
             <Route path="/" element={<Layout />}>
-            <Route index element ={<LoginPage />} />
+            <Route index element={<LoginPage />} />
             <Route path="main" element={<MainPage />} />
             <Route path=":movieId" element={<DetailPage />} />
             <Route path="search" element={<SearchPage />} />

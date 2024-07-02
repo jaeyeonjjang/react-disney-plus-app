@@ -1,41 +1,42 @@
-import { getAuth, GoogleAuthProvider , onAuthStateChanged, signInWithPopup} from 'firebase/auth';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled from 'styled-components'
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
 
 const Nav = () => {
+
+  const initialUserData = localStorage.getItem('userData') ?
+    JSON.parse(localStorage.getItem('userData')) : {};
+
   const [show, setShow] = useState(false);
-  const {pathname} = useLocation();
+  const { pathname } = useLocation();
   const [searchValue, setSearchValue] = useState("");
   const navigate = useNavigate();
   const auth = getAuth();
   const provider = new GoogleAuthProvider();
+  const [userData, setUserData] = useState(initialUserData);
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
-      console.log("user :: " + user);
-      if(user) {
-        if(pathname === "/"){
+      if (user) {
+        if (pathname === "/") {
           navigate("/main");
         }
-      }else {
-        navigate("/login");
+      } else {
+        navigate("/");
       }
     })
-  },[])
-
+  }, [auth, navigate, pathname])
 
 
   useEffect(() => {
-
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll)
     return () => {
       window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+    }
+  }, [])
 
-
-  console.log(useLocation().search);
+  // console.log('useLocation.search', useLocation().search);
 
   const handleScroll = () => {
     if (window.scrollY > 50) {
@@ -43,46 +44,108 @@ const Nav = () => {
     } else {
       setShow(false);
     }
-  };
+  }
 
   const handleChange = (e) => {
     setSearchValue(e.target.value);
-    //검색창에 타이핑 할 때 마다 searchValue가 바뀜 대박~
-    navigate(`/search?q=${e.target.value}`)
-    // SearchTerm 이 바뀔 때마다 새로 영화 데이터를 가져옴
+    navigate(`/search?q=${e.target.value}`);
   }
 
-  const handleAuth=() => {
-    signInWithPopup(auth,provider)
-    .then(result => {})
-    .catch((error) => {
-      alert(error.message);
-    })
+  const handleAuth = () => {
+    signInWithPopup(auth, provider)
+      .then(result => {
+        setUserData(result.user);
+        localStorage.setItem("userData", JSON.stringify(result.user));
+      })
+      .catch(error => {
+        console.log(error);
+      })
+  }
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        setUserData({});
+        navigate(`/`);
+      })
+      .catch((error) => {
+        console.log(error)
+      })
   }
 
   return (
-    <NavWrapper $show={show ? "true" : "false"}> {/* 문자열로 변환 */}
+    <NavWrapper show={show}>
       <Logo>
         <img
           alt="Disney Plus Logo"
           src="/images/logo.svg"
-          onClick={() => (window.location.href = '/')}
+          onClick={() => (window.location.href = "/")}
         />
       </Logo>
 
-      {pathname === "/"? (
-        <Login onClick={handleAuth}>Login</Login>) : 
-        <Input 
-        value={searchValue}
-        onChange={ handleChange}
-        className='nav_input' 
-        type="text" 
-        placeholder='검색해주세요.'/>}
-    </NavWrapper>
-  );
-};
+      {pathname === "/" ?
+        (<Login onClick={handleAuth}>Login</Login>) :
+        <>
+          <Input
+            value={searchValue}
+            onChange={handleChange}
+            className='nav__input'
+            type="text"
+            placeholder='검색해주세요.'
+          />
 
-export default Nav;
+          <SignOut>
+            <UserImg src={userData.photoURL} alt={userData.displayName} />
+            <DropDown>
+              <span onClick={handleSignOut}>Sign Out</span>
+            </DropDown>
+          </SignOut>
+        </>
+      }
+    </NavWrapper>
+  )
+}
+
+export default Nav
+
+const DropDown = styled.div`
+  position: absolute;
+  top: 48px;
+  right: 0px;
+  background: rgb(19, 19, 19)
+  border: 1px solid rgba(151, 151, 151, 0.34);
+  border-radius:  4px;
+  box-shadow: rgb(0 0 0 /50%) 0px 0px 18px 0px;
+  padding: 10px;
+  font-size: 14px;
+  letter-spacing: 3px;
+  width: 100%;
+  opacity: 0;
+`;
+
+const SignOut = styled.div`
+  position: relative;
+  height: 48px;
+  width: 48px;
+  display: flex;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    ${DropDown} {
+      opacity: 1;
+      transition-duration: 1s;
+    }
+  }
+`;
+
+const UserImg = styled.img`
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+`;
+
 
 const Login = styled.a`
   background-color: rgba(0,0,0,0.6);
@@ -116,7 +179,7 @@ const NavWrapper = styled.nav`
   left: 0;
   right: 0;
   height: 70px;
-  background-color: ${(props) => (props.$show === "true" ? '#090b13' : 'transparent')}; /* 문자열 비교 */
+  background-color: ${props => props.show ? "#090b13" : "transparent"};
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -126,15 +189,15 @@ const NavWrapper = styled.nav`
 `;
 
 const Logo = styled.a`
-  padding: 0;
+  padding:0;
   width: 80px;
   margin-top: 4px;
   max-height: 70px;
   font-size: 0;
-  display: inline-block;
+  diplay: inline-block;
 
   img {
     display: block;
     width: 100%;
   }
-`;
+`
